@@ -11,8 +11,8 @@ from booking_details import BookingDetails
 class Intent(Enum):
     BOOK_FLIGHT = "BookFlight"
     CANCEL = "Cancel"
-    GET_WEATHER = "GetWeather"
-    NONE_INTENT = "NoneIntent"
+    #GET_WEATHER = "GetWeather"
+    NONE_INTENT = "None"
 
 
 def top_intent(intents: Dict[Intent, dict]) -> TopIntent:
@@ -60,43 +60,43 @@ class LuisHelper:
                     "To", []
                 )
                 if len(to_entities) > 0:
-                    if recognizer_result.entities.get("To", [{"$instance": {}}])[0][
-                        "$instance"
-                    ]:
-                        result.destination = to_entities[0]["text"].capitalize()
-                    else:
-                        result.unsupported_airports.append(
-                            to_entities[0]["text"].capitalize()
-                        )
+                    result.destination = to_entities[0]["text"].capitalize()
+                else:
+                    result.destination =None
+                    
 
                 from_entities = recognizer_result.entities.get("$instance", {}).get(
                     "From", []
                 )
                 if len(from_entities) > 0:
-                    if recognizer_result.entities.get("From", [{"$instance": {}}])[0][
-                        "$instance"
-                    ]:
-                        result.origin = from_entities[0]["text"].capitalize()
-                    else:
-                        result.unsupported_airports.append(
-                            from_entities[0]["text"].capitalize()
-                        )
+                    result.origin = from_entities[0]["text"].capitalize()
+                else:
+                    result.origin = None    
 
                 # This value will be a TIMEX. And we are only interested in a Date so
                 # grab the first result and drop the Time part.
                 # TIMEX is a format that represents DateTime expressions that include
                 # some ambiguity. e.g. missing a Year.
-                date_entities = recognizer_result.entities.get("datetime", [])
-                if date_entities:
-                    timex = date_entities[0]["timex"]
+                ondate_entities = recognizer_result.entities.get("on_date", [])
+                if ondate_entities:
+                    result.on_date = ondate_entities[0]
+                else:
+                    result.on_date = None
 
-                    if timex:
-                        datetime = timex[0].split("T")[0]
-
-                        result.travel_date = datetime
+                enddate_entities = recognizer_result.entities.get("end_date", [])
+                if enddate_entities:
+                    result.end_date= enddate_entities[0]
 
                 else:
-                    result.travel_date = None
+                    result.end_date = None
+
+                budget_entities = recognizer_result.entities.get("$instance", {}).get(
+                    "budget", []
+                )
+                if len(budget_entities) > 0:
+                    result.budget = budget_entities[0]["text"]
+                else:
+                    result.budget = None    
 
         except Exception as err:
             print(err)

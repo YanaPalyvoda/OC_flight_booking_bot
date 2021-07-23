@@ -8,7 +8,7 @@ from botbuilder.dialogs import (
     DialogTurnResult,
 )
 from botbuilder.dialogs.prompts import TextPrompt, PromptOptions
-from botbuilder.core import MessageFactory, TurnContext
+from botbuilder.core import MessageFactory, TurnContext,BotTelemetryClient, NullTelemetryClient
 from botbuilder.schema import InputHints
 
 from booking_details import BookingDetails
@@ -20,21 +20,22 @@ from .booking_dialog import BookingDialog
 
 class MainDialog(ComponentDialog):
     def __init__(
-        self, luis_recognizer: FlightBookingRecognizer, booking_dialog: BookingDialog
+        self, luis_recognizer: FlightBookingRecognizer, booking_dialog: BookingDialog,
+        telemetry_client: BotTelemetryClient = None
     ):
         super(MainDialog, self).__init__(MainDialog.__name__)
 
         self._luis_recognizer = luis_recognizer
         self._booking_dialog_id = booking_dialog.id
-
-        self.add_dialog(TextPrompt(TextPrompt.__name__))
+        booking_dialog.telemetry_client = telemetry_client
+        text_prompt = TextPrompt(TextPrompt.__name__)
+        text_prompt.telemetry_client = self.telemetry_client
+        wf_dialog = WaterfallDialog("WFDialog", [self.intro_step, self.act_step, self.final_step])
+        wf_dialog.telemetry_client=telemetry_client
+        
+        self.add_dialog(text_prompt)
         self.add_dialog(booking_dialog)
-        self.add_dialog(
-            WaterfallDialog(
-                "WFDialog", [self.intro_step, self.act_step, self.final_step]
-            )
-        )
-
+        self.add_dialog(wf_dialog)
         self.initial_dialog_id = "WFDialog"
 
     async def intro_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
@@ -82,12 +83,6 @@ class MainDialog(ComponentDialog):
             # Run the BookingDialog giving it whatever details we have from the LUIS call.
             return await step_context.begin_dialog(self._booking_dialog_id, luis_result)
 
-        if intent == Intent.GET_WEATHER.value:
-            get_weather_text = "TODO: get weather flow here"
-            get_weather_message = MessageFactory.text(
-                get_weather_text, get_weather_text, InputHints.ignoring_input
-            )
-            await step_context.context.send_activity(get_weather_message)
 
         else:
             didnt_understand_text = (
@@ -111,7 +106,7 @@ class MainDialog(ComponentDialog):
             # If the call to the booking service was successful tell the user.
             # time_property = Timex(result.travel_date)
             # travel_date_msg = time_property.to_natural_language(datetime.now())
-            msg_txt = f"I have you booked to {result.destination} from {result.origin} on {result.travel_date}"
+            msg_txt = f"I have you booked to {result.destination} from {result.origin} from {result.on_date} to {result.end_date}"
             message = MessageFactory.text(msg_txt, msg_txt, InputHints.ignoring_input)
             await step_context.context.send_activity(message)
 

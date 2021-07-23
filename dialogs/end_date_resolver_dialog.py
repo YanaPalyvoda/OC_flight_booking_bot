@@ -15,17 +15,17 @@ from datatypes_date_time.timex import Timex
 from .cancel_and_help_dialog import CancelAndHelpDialog
 
 
-class DateResolverDialog(CancelAndHelpDialog):
+class EndDateResolverDialog(CancelAndHelpDialog):
     def __init__(self, dialog_id: str = None,  telemetry_client: BotTelemetryClient = NullTelemetryClient()):
-        super(DateResolverDialog, self).__init__(
-            dialog_id or DateResolverDialog.__name__,
+        super(EndDateResolverDialog, self).__init__(
+            dialog_id or EndDateResolverDialog.__name__,
             telemetry_client
 
         )
         self.telemetry_client = telemetry_client
         
         date_time_prompt = DateTimePrompt(
-            DateTimePrompt.__name__, DateResolverDialog.datetime_prompt_validator
+            DateTimePrompt.__name__, EndDateResolverDialog.datetime_prompt_validator
         )
         date_time_prompt.telemetry_client = telemetry_client
 
@@ -44,18 +44,23 @@ class DateResolverDialog(CancelAndHelpDialog):
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         timex = step_context.options
-        prompt_msg = "On what date would you like to travel?"
-        reprompt_msg= "I'm sorry, for best results, please enter your travel date " \
+
+        prompt_msg_text = "When would you like to return?"
+        prompt_msg = MessageFactory.text(
+            prompt_msg_text, prompt_msg_text, InputHints.expecting_input
+        )
+
+        reprompt_msg_text = "I'm sorry, for best results, please enter your back date " \
                             "including the month, day and year."
-        
+        reprompt_msg = MessageFactory.text(
+            reprompt_msg_text, reprompt_msg_text, InputHints.expecting_input
+        )
+
         if timex is None:
             # We were not given any date at all so prompt the user.
             return await step_context.prompt(
                 DateTimePrompt.__name__,
-                PromptOptions(
-                    prompt=MessageFactory.text(prompt_msg),
-                    retry_prompt=MessageFactory.text(reprompt_msg)
-                    )
+                PromptOptions(prompt=prompt_msg, retry_prompt=reprompt_msg),
             )
         # We have a Date we just need to check it is unambiguous.
         if "definite" not in Timex(timex).types:

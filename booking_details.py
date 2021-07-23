@@ -9,10 +9,14 @@ class BookingDetails:
         self,
         destination: str = None,
         origin: str = None,
-        travel_date: str = None,
+        on_date: str = None,
+        end_date: str = None,
+        budget: str = None,
         unsupported_airports: List[str] = None,
     ):
         self.destination = destination
         self.origin = origin
-        self.travel_date = travel_date
+        self.on_date = on_date
+        self.end_date = end_date
+        self.budget = budget
         self.unsupported_airports = unsupported_airports or []
