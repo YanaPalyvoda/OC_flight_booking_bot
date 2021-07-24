@@ -10,8 +10,7 @@ This sample shows how to create a bot that demonstrates the following:
 """
 
 from http import HTTPStatus
-from aiohttp import web
-from aiohttp.web import Request, Response, json_response
+#from aiohttp import web
 
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
@@ -34,6 +33,7 @@ from bots import DialogAndWelcomeBot
 from adapter_with_error_handler import AdapterWithErrorHandler
 from flight_booking_recognizer import FlightBookingRecognizer
 
+from aiohttp.web import Request, Response, json_response
 
 CONFIG = DefaultConfig()
 
