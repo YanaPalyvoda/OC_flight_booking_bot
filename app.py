@@ -11,8 +11,6 @@ This sample shows how to create a bot that demonstrates the following:
 
 from http import HTTPStatus
 
-from aiohttp import web
-from aiohttp.web import Request, Response, json_response
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
     ConversationState,
@@ -33,6 +31,10 @@ from bots import DialogAndWelcomeBot
 
 from adapter_with_error_handler import AdapterWithErrorHandler
 from flight_booking_recognizer import FlightBookingRecognizer
+
+from aiohttp import web
+from aiohttp.web import Request, Response, json_response
+
 CONFIG = DefaultConfig()
 
 # Create adapter.
