@@ -8,7 +8,7 @@ class DefaultConfig:
     """ Bot Configuration """
 
     PORT = 3978
-    APP_ID = os.environ.get("MicrosoftAppId", "86d0e642-1bea-45ab-ac1f-8e07d1ac7f80")
+    APP_ID = os.environ.get("MicrosoftAppId", "ccf0278f-683e-4226-9479-223ca207115d")
     APP_PASSWORD = os.environ.get("MicrosoftAppPassword", "EB9.IjS&wW]B$yEHWq.5(*&GErn:ZNMk")
     LUIS_APP_ID = os.environ.get("LuisAppId", "383654ee-9960-452f-b581-6866c829cd9b")
     LUIS_API_KEY = os.environ.get("LuisAPIKey", "74485270f887423aa297c00418cf0f57")
