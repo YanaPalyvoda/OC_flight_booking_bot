@@ -11,6 +11,9 @@ This sample shows how to create a bot that demonstrates the following:
 
 from http import HTTPStatus
 
+from aiohttp import web
+from aiohttp.web import Request, Response, json_response
+
 
 from botbuilder.core import (
     BotFrameworkAdapterSettings,
@@ -33,8 +36,7 @@ from bots import DialogAndWelcomeBot
 from adapter_with_error_handler import AdapterWithErrorHandler
 from flight_booking_recognizer import FlightBookingRecognizer
 
-from aiohttp import web
-from aiohttp.web import Request, Response, json_response
+
 
 CONFIG = DefaultConfig()
 
@@ -53,15 +55,6 @@ ADAPTER = AdapterWithErrorHandler(SETTINGS, CONVERSATION_STATE)
 
 INSTRUMENTATION_KEY = CONFIG.APPINSIGHTS_INSTRUMENTATION_KEY
 TELEMETRY_CLIENT = ApplicationInsightsTelemetryClient(INSTRUMENTATION_KEY, telemetry_processor=AiohttpTelemetryProcessor(), client_queue_size=10)
-
-TELEMETRY_CLIENT.track_trace("### Test BOT ")
-TELEMETRY_CLIENT.flush()
-
-# Create dialogs and Bot
-#RECOGNIZER = FlightBookingRecognizer(CONFIG)
-#BOOKING_DIALOG = BookingDialog(telemetry_client=TELEMETRY_CLIENT)
-#DIALOG = MainDialog(RECOGNIZER, BOOKING_DIALOG,telemetry_client=TELEMETRY_CLIENT)
-#BOT = DialogAndWelcomeBot(CONVERSATION_STATE, USER_STATE, DIALOG,telemetry_client=TELEMETRY_CLIENT)
 
 # Create dialogs and Bot
 RECOGNIZER = FlightBookingRecognizer(CONFIG)

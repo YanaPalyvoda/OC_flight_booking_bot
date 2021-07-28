@@ -39,13 +39,13 @@ class BookingDialog(CancelAndHelpDialog):
                     self.on_date_step,
                     self.end_date_step,
                     self.budget_step,
-                    #self.confirm_step,
+                    self.confirm_step,
                     self.final_step,
                 ],
             )
         wf_dialog.telemetry_client = telemetry_client
         self.add_dialog(text_prompt)
-        #self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__,self.telemetry_client))
+        self.add_dialog(ConfirmPrompt(ConfirmPrompt.__name__))
         self.add_dialog(DateResolverDialog(DateResolverDialog.__name__, self.telemetry_client))
         self.add_dialog(EndDateResolverDialog(EndDateResolverDialog.__name__, self.telemetry_client))
         self.add_dialog(wf_dialog)
@@ -164,7 +164,7 @@ class BookingDialog(CancelAndHelpDialog):
         booking_details.budget = step_context.result
         msg = (
             f"Please confirm, I have you traveling to: { booking_details.destination } from: "
-            f"{ booking_details.origin } from: { booking_details.on_date} to: { booking_details.end_date}."
+            f"{ booking_details.origin } from: { booking_details.on_date} to: { booking_details.end_date} with a budget of {booking_details.budget}."
         )
 
         # Offer a YES/NO prompt.
@@ -183,28 +183,20 @@ class BookingDialog(CancelAndHelpDialog):
         if step_context.result:
             booking_details = step_context.options
             booking_details.budget = step_context.result
-              #record details to send to azure insights
-        details_insights = {}
-        details_insights['destination'] = booking_details.destination
-        details_insights['origin'] = booking_details.origin
-        details_insights['departure_date'] = booking_details.on_date
-        details_insights['return_date'] = booking_details.end_date
-        details_insights['budget'] = booking_details.budget
-        #INSTRUMENTATION_KEY = DefaultConfig.APPINSIGHTS_INSTRUMENTATION_KEY
-        #print(INSTRUMENTATION_KEY)
-        #TELEMETRY_CLIENT = ApplicationInsightsTelemetryClient(INSTRUMENTATION_KEY, telemetry_processor=AiohttpTelemetryProcessor(), client_queue_size=10)  
-        if step_context.result:
-            #tester si l'envoie se fait correctement vers Azure insight
-            print('insights 1')
-            self.telemetry_client.track_trace('OK', details_insights, 'details')
-            #self.telemetry_client.track_trace('good', details_insights, 'details')
-            self.telemetry_client.flush()
-            print('insights  2')
+
             return await step_context.end_dialog(booking_details)
-        print('insights  3')
-        self.telemetry_client.track_trace('KO', details_insights, 'details')
-        self.telemetry_client.flush()
-        print('insights 4')
+        else:    
+              #record details to send to azure insights
+            booking_details = step_context.options
+            details_insights = {}
+            details_insights['destination'] = booking_details.destination
+            details_insights['origin'] = booking_details.origin
+            details_insights['departure_date'] = booking_details.on_date
+            details_insights['return_date'] = booking_details.end_date
+            details_insights['budget'] = booking_details.budget
+            self.telemetry_client.track_trace("bad answer", details_insights, 3)        
+            self.telemetry_client.flush()
+        
         return await step_context.end_dialog()   
 
 
