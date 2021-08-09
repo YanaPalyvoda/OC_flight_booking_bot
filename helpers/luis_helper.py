@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Dict
 from botbuilder.ai.luis import LuisRecognizer
 from botbuilder.core import IntentScore, TopIntent, TurnContext
+from datatypes_date_time.timex import Timex
 
 from booking_details import BookingDetails
 
@@ -77,21 +78,31 @@ class LuisHelper:
                 # grab the first result and drop the Time part.
                 # TIMEX is a format that represents DateTime expressions that include
                 # some ambiguity. e.g. missing a Year.
-                ondate_entities = recognizer_result.entities.get("on_date", [])
-                if ondate_entities:
-                    result.on_date = ondate_entities[0]
-                else:
-                    result.on_date = None
+                datetimeOn = None
+                datetimeEnd = None
+                date_entities = recognizer_result.entities.get("datetime", [])
+                if date_entities:
+                    if len(date_entities)== 1:
+                        timex = date_entities[0]["timex"] 
+                        if date_entities[0]["type"]=="daterange":                       
+                            dates = timex[0].replace('(', '').replace(')','').split(",")
+                            datetimeOn = dates[0]                                                  
+                            datetimeEnd = dates[1] 
+                        elif date_entities[0]["type"]=="date":
+                             datetimeOn = timex
+                    else:
+                        for dt in date_entities:
+                            if dt["type"]=="date":
+                                datetimeOn = dt["timex"][0]
+                            if dt["type"]=="duration":
+                                duration = dt["timex"][0]                
 
-                enddate_entities = recognizer_result.entities.get("end_date", [])
-                if enddate_entities:
-                    result.end_date= enddate_entities[0]
-
-                else:
-                    result.end_date = None
+                                          
+                result.on_date = datetimeOn
+                result.end_date = datetimeEnd        
 
                 budget_entities = recognizer_result.entities.get("$instance", {}).get(
-                    "budget", []
+                    "money", []
                 )
                 if len(budget_entities) > 0:
                     result.budget = budget_entities[0]["text"]

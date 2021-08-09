@@ -1,20 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-#from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, DialogTurnResult
-#from botbuilder.dialogs.prompts import ConfirmPrompt, TextPrompt, PromptOptions
-#from botbuilder.core import MessageFactory,BotTelemetryClient, NullTelemetryClient
-#from botbuilder.schema import InputHints
 
-#from datatypes_date_time.timex import Timex
-
-#from .cancel_and_help_dialog import CancelAndHelpDialog
-#from .date_resolver_dialog import DateResolverDialog
-#from .end_date_resolver_dialog import EndDateResolverDialog
-#from botbuilder.applicationinsights import ApplicationInsightsTelemetryClient
-#from botbuilder.integration.applicationinsights.aiohttp import (AiohttpTelemetryProcessor,bot_telemetry_middleware)
-#from config import DefaultConfig
-
+from botbuilder.core.bot_telemetry_client import TelemetryDataPointType
 from datatypes_date_time.timex import Timex
 
 from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, DialogTurnResult
@@ -23,6 +11,9 @@ from botbuilder.core import MessageFactory, BotTelemetryClient, NullTelemetryCli
 from .cancel_and_help_dialog import CancelAndHelpDialog
 from .date_resolver_dialog import DateResolverDialog
 from .end_date_resolver_dialog import EndDateResolverDialog
+from botbuilder.applicationinsights import ApplicationInsightsTelemetryClient
+from botbuilder.integration.applicationinsights.aiohttp import (AiohttpTelemetryProcessor,bot_telemetry_middleware)
+from config import DefaultConfig
 
 class BookingDialog(CancelAndHelpDialog):
     def __init__(self, dialog_id: str = None,telemetry_client: BotTelemetryClient = NullTelemetryClient(),):
@@ -101,9 +92,9 @@ class BookingDialog(CancelAndHelpDialog):
 
         # Capture the results of the previous step
         booking_details.origin = step_context.result
-        if not booking_details.on_date:#or self.is_ambiguous(
-        #    booking_details.on_date
-        #):
+        if not booking_details.on_date or self.is_ambiguous(
+            booking_details.on_date
+        ):
             return await step_context.begin_dialog(
                 DateResolverDialog.__name__, booking_details.on_date
             )  # pylint: disable=line-too-long
@@ -115,8 +106,8 @@ class BookingDialog(CancelAndHelpDialog):
         self, step_context: WaterfallStepContext
     ) -> DialogTurnResult:
         """
-        If a travel date has not been provided, prompt for one.
-        This will use the DATE_RESOLVER_DIALOG.
+        If a return date has not been provided, prompt for one.
+        This will use the END_DATE_RESOLVER_DIALOG.
         :param step_context:
         :return DialogTurnResult:
         """
@@ -124,11 +115,11 @@ class BookingDialog(CancelAndHelpDialog):
 
         # Capture the results of the previous step
         booking_details.on_date = step_context.result
-        if  booking_details.end_date is None:#or self.is_ambiguous(
-         #   booking_details.end_date
-        #):
+        if  not booking_details.end_date  or self.is_ambiguous(
+            booking_details.end_date
+        ):
             return await step_context.begin_dialog(
-                DateResolverDialog.__name__, booking_details.end_date
+                EndDateResolverDialog.__name__, booking_details.end_date
             )  # pylint: disable=line-too-long
 
         return await step_context.next(booking_details.end_date)
@@ -137,7 +128,7 @@ class BookingDialog(CancelAndHelpDialog):
 
     async def budget_step(self, step_context: WaterfallStepContext) -> DialogTurnResult:
         """
-        If an origin city has not been provided, prompt for one.
+        If budget has not been provided, prompt for one.
         :param step_context:
         :return DialogTurnResult:
         """
@@ -179,22 +170,29 @@ class BookingDialog(CancelAndHelpDialog):
         :param step_context:
         :return DialogTurnResult:
         """
+        #INSTRUMENTATION_KEY = DefaultConfig.APPINSIGHTS_INSTRUMENTATION_KEY
+        #TELEMETRY_CLIENT = ApplicationInsightsTelemetryClient(INSTRUMENTATION_KEY, telemetry_processor=AiohttpTelemetryProcessor(), client_queue_size=10)
         #self.telemetry_client = telemetry_client
+        booking_details = step_context.options
+        details_insights = {}
+        details_insights['destination'] = booking_details.destination
+        details_insights['origin'] = booking_details.origin
+        details_insights['departure_date'] = booking_details.on_date
+        details_insights['return_date'] = booking_details.end_date
+        details_insights['budget'] = booking_details.budget
+        #print(details_insights)
         if step_context.result:
-            booking_details = step_context.options
-            booking_details.budget = step_context.result
+            #booking_details = step_context.options
+            #booking_details.budget = step_context.result
+            self.telemetry_client.track_trace("OK",details_insights)   
+            self.telemetry_client.flush()
 
             return await step_context.end_dialog(booking_details)
         else:    
               #record details to send to azure insights
-            booking_details = step_context.options
-            details_insights = {}
-            details_insights['destination'] = booking_details.destination
-            details_insights['origin'] = booking_details.origin
-            details_insights['departure_date'] = booking_details.on_date
-            details_insights['return_date'] = booking_details.end_date
-            details_insights['budget'] = booking_details.budget
-            self.telemetry_client.track_trace("bad answer", details_insights, 3)        
+            
+            
+            self.telemetry_client.track_trace("KO",details_insights,"CRITICAL")   
             self.telemetry_client.flush()
         
         return await step_context.end_dialog()   
