@@ -1,4 +1,15 @@
-# CoreBot
+# Bot Fly Me
+
+This code is about the chatbot that helps to users choose a travel offer.
+As soon user makes an initial request, their message is sent to a pre-trained Azure LUIS model. The model must identify the "intent" and the following elements
+- City of departure
+- Destination city
+- Departure date
+- Return date
+- Maximum budget for the total ticket price
+If one of the elements is missing, the chatbot asks the user the relevant questions to fully understand his request. When the chatbot thinks it has understood all the elements, it rephrases the user's request and asks him to validate his understanding. If the user does not validate the chatbot's formulation, the erroneous data is recorded and tagged in order to train the model later.
+
+# Used CoreBot
 
 Bot Framework v4 core bot sample.
 
