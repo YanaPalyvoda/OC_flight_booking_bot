@@ -12,6 +12,7 @@ from .end_date_resolver_dialog import EndDateResolverDialog
 from botbuilder.applicationinsights import ApplicationInsightsTelemetryClient
 from botbuilder.integration.applicationinsights.aiohttp import (AiohttpTelemetryProcessor,bot_telemetry_middleware)
 from config import DefaultConfig
+from datatypes_date_time.timex import Timex
 
 class BookingDialog(CancelAndHelpDialog):
     def __init__(self, dialog_id: str = None,telemetry_client: BotTelemetryClient = NullTelemetryClient(),):
