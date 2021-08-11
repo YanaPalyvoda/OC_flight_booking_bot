@@ -34,7 +34,7 @@ jobs:
 
     - name: Run Test
       run: 
-        python -m unittest discover tests
+        python -m unittest
 
     # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 

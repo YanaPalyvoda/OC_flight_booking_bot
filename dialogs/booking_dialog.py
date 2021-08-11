@@ -3,8 +3,6 @@
 
 
 from botbuilder.core.bot_telemetry_client import TelemetryDataPointType
-from datatypes_date_time.timex import Timex
-
 from botbuilder.dialogs import WaterfallDialog, WaterfallStepContext, DialogTurnResult
 from botbuilder.dialogs.prompts import ConfirmPrompt, TextPrompt, PromptOptions
 from botbuilder.core import MessageFactory, BotTelemetryClient, NullTelemetryClient
@@ -155,9 +153,8 @@ class BookingDialog(CancelAndHelpDialog):
         booking_details.budget = step_context.result
         msg = (
             f"Please confirm, I have you traveling to: { booking_details.destination } from: "
-            f"{ booking_details.origin } from: { booking_details.on_date} to: { booking_details.end_date} with a budget of {booking_details.budget}."
+            f"{ booking_details.origin } departure on: { booking_details.on_date} return on: { booking_details.end_date} with a maximum budget of {booking_details.budget}."
         )
-
         # Offer a YES/NO prompt.
         return await step_context.prompt(
             ConfirmPrompt.__name__, PromptOptions(prompt=MessageFactory.text(msg))
